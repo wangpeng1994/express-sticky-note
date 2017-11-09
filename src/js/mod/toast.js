@@ -1,15 +1,4 @@
-
-var Event = require('mod/event.js')
-
-Event.on('toast', function(args){
-  var msg = args[0],
-    time = args[1]
-  Toast(msg, time)
-})
-
 require('less/toast.less')
-
-//var $ = require('jquery2') //用了webpack 插件，所以省略
 
 function toast(msg, time){
   this.msg = msg
@@ -40,4 +29,5 @@ function Toast(msg, time){
 }
 
 //window.Toast = Toast
-module.exports.Toast = Toast  //注意，module.exports 本身是对象，所以不能直接赋值为 Toast 函数，但是给这个对象新增方法
+module.exports.Toast = Toast  
+//注意，module.exports 本身是对象，所以不能直接赋值为 Toast 函数，但是给这个对象新增方法

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "PORT=8080 node ./bin/www",
     "webpack": "webpack --config src/webpack.config.js",
-    "watch": "onchange \"src/**/*.js\" \"src/**/*.less\" -- npm run webpack"
+    "watch": "onchange \"src/**/*.js\" \"src/**/*.less\" -- npm run webpack",
+    "git": "git add . && git commit -am 'daily update' && git push"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
