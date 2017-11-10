@@ -25,7 +25,7 @@ Note.prototype = {
     ['#ADAD37','#CCCC99'],
     ['#FF9900','#FFCC00'],
     ['#0099CC','#99CCFF'],
-    ['#666699','#9999CC'],
+    ['#FF9900','#FFCC00'],
     ['#339933','#33CC33'],
     ['#CC6699','#CC99CC'],
     ['#009999','#66CCCC']
@@ -54,8 +54,8 @@ Note.prototype = {
     this.$note.find('.note-ct').html(this.opts.context) //向note写入预设文本
     this.opts.$ct.append(this.$note) //将note添加到$ct中
     if(!this.id) this.$note.css({ //如果this.id 是空的
-      left: '10%',
-      top: '20%'
+      left: 'calc(50% - 125px)',
+      top: '200px'
     }) 
   },
   //设置样式
@@ -117,13 +117,11 @@ Note.prototype = {
     })
     //鼠标移动时，如果有draggable， 说明是按住note移动的过程， 因此改变相应note据文档的偏移即可 
     $('body').on('mousemove', function(e){
-      console.log(111, $('.draggable').data('evtPos'))
-
-      // $('.draggable').length && $('.draggable').offset({
-      //   top: e.pageY - $('.draggable').data('evtPos').y,
-      //   left: e.pageX - $('.draggable').data(evtPos)
-      // })
-
+      $('.draggable').length && $('.draggable').offset({
+        top: e.pageY - $('.draggable').data('evtPos').y,
+        left: e.pageX - $('.draggable').data('evtPos').x
+      })
+      $('.draggable').length && $('.note').css('user-select', 'none')
     })
   },
   //用于修改
@@ -144,7 +142,6 @@ Note.prototype = {
   },
   //用于新增
   add: function(msg){
-    console.log('adding...')
     var self = this
     $.post('/api/notes/add', {
       note: msg

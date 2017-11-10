@@ -212,7 +212,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(10);
+var	fixUrls = __webpack_require__(8);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -585,13 +585,13 @@ EventCenter.fire('饭做好了', '小明')
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function($) {//require('less/index.less')
+/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(6)
 
-var NoteManager = __webpack_require__(6)
+var NoteManager = __webpack_require__(9)
 var Event = __webpack_require__(3)
-var WaterFall = __webpack_require__(11)
-var Toast = __webpack_require__(12).Toast
-var GoTop = __webpack_require__(15).GoTop
+var WaterFall = __webpack_require__(13)
+var Toast = __webpack_require__(14).Toast
+var GoTop = __webpack_require__(17).GoTop
 
 NoteManager.load()
 
@@ -614,6 +614,14 @@ Event.on('toast', function(args){
 })
 
 GoTop()
+
+//window 每次被点击的时候，先看页面上有无 note-ct 可编辑标签，有则传入 MarkdownIME 进行增强
+//https://laobubu.net/MarkdownIME/index.zh.html
+$(window).on('click', function(){
+  $('.note-ct').length && MarkdownIME.Enhance($('.note-ct'))
+})
+
+
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
@@ -629,241 +637,10 @@ module.exports = __webpack_amd_options__;
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function($) {var Note = __webpack_require__(7).Note
-var Event = __webpack_require__(3)
-
-
-var NoteManager = (function(){
-  
-  function load(){
-    $.get('/api/notes')
-      .done(function(ret){
-        if(ret.status === 0){
-          $.each(ret.data, function(idx, note){
-            new Note({
-              id: note.id,
-              context: note.text
-            })
-          })
-          Event.fire('waterfall')
-        }else{
-          Event.fire('toast', '初始化失败')
-          console.log(ret.errorMsg)
-        }
-      })
-      .fail(function(){
-        Event.fire('toast', '网络异常')
-      })
-  }
-
-  function add(){
-    new Note()
-  }
-
-  return {
-    load: load,
-    add: add
-  }
-
-})()
-
-module.exports = NoteManager
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(8)
-
-var Event = __webpack_require__(3)
-
-/*
-定义 note形式, id用来识别note
-{id: 1, context:'my note'}
-*/
-
-
-function Note(opts){
-  this.initOpts(opts)
-  this.createNote()
-  this.setStyle()
-  this.bindEvent()
-}
-
-Note.prototype = {
-
-  colors: [
-    ['#EA9B35','#EFB04E'], //顶部颜色, 内容颜色
-    ['#FF9999','#FFCCCC'],
-    ['#A76F00','#CC9966'],
-    ['#9999CC','#CCCCFF'],
-    ['#ADAD37','#CCCC99'],
-    ['#FF9900','#FFCC00'],
-    ['#0099CC','#99CCFF'],
-    ['#666699','#9999CC'],
-    ['#339933','#33CC33'],
-    ['#CC6699','#CC99CC'],
-    ['#009999','#66CCCC']
-  ],
-  //默认参数
-  defaultOpts: {
-    id: '', //note默认id是空的
-    $ct: $('#content').length>0?$('#content'):$('body'), //有容器就放在容器里，否则放在body里
-    context: 'write here'  //Note 默认内容
-  },
-  //初始化默认参数
-  initOpts: function(opts){
-    this.opts = $.extend({}, this.defaultOpts, opts||{}) //将默认参数 和 可能传入的参数 合并成新对象，绑定到this.opts 上
-    if(this.opts.id){ //设置 Note id
-      this.id = this.opts.id
-    }
-  },
-  //创建Note
-  createNote: function(){
-    var tpl = '<div class="note">'
-              + '<div class="note-head"><span class="delete">&times;</span></div>'
-              + '<div class="note-ct" contenteditable="true"></div>'
-              + '<div class="paper"></div>'
-              +'</div>'
-    this.$note = $(tpl)
-    this.$note.find('.note-ct').html(this.opts.context) //向note写入预设文本
-    this.opts.$ct.append(this.$note) //将note添加到$ct中
-    if(!this.id) this.$note.css({ //如果this.id 是空的
-      left: '10%',
-      top: '20%'
-    }) 
-  },
-  //设置样式
-  setStyle: function(){
-    var color = this.colors[Math.floor(Math.random()*11)]
-    this.$note.find('.note-head').css('background-color', color[0])
-    this.$note.find('.note-ct').css('background-color', color[1])
-    this.$note.find('.paper').css('background-color', color[0])
-
-    var num = 2 * Math.floor(Math.random()*5/2)
-    var coin = Math.floor(Math.random()*2)
-    if(!coin){
-      num = - num
-    }
-    this.$note.css('transform', 'rotate('+num+'deg)')
-  },
-  //设置布局
-  setLayout: function(){
-    if(this.clock){
-      clearTimeout(this.clock)
-    }
-    this.clock = setTimeout(function(){  //使用 setTimeout 是有原因的
-      Event.fire('waterfall')
-    }, 100)
-  },
-  //绑定事件
-  bindEvent: function(){
-    var self = this,
-        $note = this.$note,
-        $noteHead = $note.find('.note-head'),
-        $noteCt = $note.find('.note-ct'),
-        $delete = $note.find('.delete')
-
-    $delete.on('click', function(){ //点击 x 时 删除note
-      if(window.confirm('Do you really want to delete?')) self.delete()
-    })
-    //但是 contenteditable 没有 change 事件，所以要通过判断元素内容变动，模拟 change，实现 保存
-    $noteCt.on('focus', function(){
-      if( $noteCt.html() === 'write here' ) $noteCt.html('') //点击时清空默认字符
-      $noteCt.data('before', $noteCt.html()) //data()方法用于在匹配元素上存储数据
-    }).on('blur paste', function(){
-      if( $noteCt.data('before') !== $noteCt.html() ){ //如果失去焦点或者粘贴后，当前$noteCt的html内容和之前存储的数据不一样了
-        $noteCt.data('before', $noteCt.html()) //那么就更新存储的数据
-        self.setLayout() //重新布局放置
-        if(self.id){  //如果是之前已有的 note 
-          self.edit($noteCt.html()) //那就发送post请求，提交当前note内容
-        }else{ //否则 self.id 是空
-          self.add($noteCt.html()) //则新增
-        }
-      }
-    })
-    //设置 note 的拖动
-    $noteHead.on('mousedown', function(e){
-      var evtX = e.pageX - $note.offset().left, //计算触发点距离 noteHead 左边缘距离
-          evtY = e.pageY - $note.offset().top
-      $note.addClass('draggable').data('evtPos', {x:evtX, y:evtY}) //添加拖动状态class 并存储 触发点至 note 边缘距离
-    }).on('mouseup', function(){
-      $note.removeClass('draggable').removeData('evtPos') //松开鼠标后 移除存储的相对note的坐标
-    })
-    //鼠标移动时，如果有draggable， 说明是按住note移动的过程， 因此改变相应note据文档的偏移即可 
-    $('body').on('mousemove', function(e){
-      console.log(111, $('.draggable').data('evtPos'))
-
-      // $('.draggable').length && $('.draggable').offset({
-      //   top: e.pageY - $('.draggable').data('evtPos').y,
-      //   left: e.pageX - $('.draggable').data(evtPos)
-      // })
-
-    })
-  },
-  //用于修改
-  edit: function(msg){
-    var self = this
-    $,post('/api/notes/edit', {
-      id: this.id,
-      note: msg
-    }).done(function(ret){
-      if(ret.status === 0){
-        Event.fire('toast', '修改成功')
-        console.log('update success')
-      }else{
-        Event.fire('toast', '修改失败')
-        console.log(ret.errorMsg)
-      }
-    })
-  },
-  //用于新增
-  add: function(msg){
-    console.log('adding...')
-    var self = this
-    $.post('/api/notes/add', {
-      note: msg
-    }).done(function(ret){
-      if(ret.status === 0){
-        self.id = ret.data.id  //当前self.id也修改为服务器分配的id，以便继续修改note或者delete发送请求时，携带正确的id
-        Event.fire('toast', '创建成功')
-      }else{
-        Event.fire('toast', '创建失败')
-        console.log(ret.errorMsg)
-      }
-    })
-  },
-  //用于删除
-  delete: function(){
-    var self = this
-    $.post('/api/notes/delete', {id: this.id})
-      .done(function(ret){
-        if(ret.status === 0){
-          Event.fire('toast', '删除成功')
-          self.$note.remove()
-          Event.fire('waterfall')
-        }else{
-          Event.fire('toast', '删除失败')
-          console.log(ret.errorMsg)
-        }
-      })
-  }
-
-}
-
-
-module.exports.Note = Note
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(9);
+var content = __webpack_require__(7);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -877,8 +654,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./note.less", function() {
-			var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./note.less");
+		module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./index.less", function() {
+			var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./index.less");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -888,7 +665,7 @@ if(false) {
 }
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(undefined);
@@ -896,13 +673,13 @@ exports = module.exports = __webpack_require__(1)(undefined);
 
 
 // module
-exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 230px;\n  margin: 25px 15px;\n  transition: all 0.5s;\n}\n.note .note-head {\n  position: relative;\n  top: 10px;\n  height: 20px;\n  background-color: #EA9B35;\n  cursor: move;\n  border-radius: 0 0 30% 30%;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head::before {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(-50%);\n  content: '';\n  display: block;\n  width: 60px;\n  height: 20px;\n  background-color: #cbd8cb;\n}\n.note .note-head::after {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(30px);\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #627262;\n  border-top: 18px solid transparent;\n}\n.note .note-head .delete {\n  position: absolute;\n  top: -7px;\n  right: 5px;\n  font-size: 22px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0;\n  transition: opacity 0.3s;\n}\n.note .note-ct {\n  padding: 20px 10px 5px 10px;\n  background-color: #EFB04E;\n  outline: none;\n  border-radius: 0 0 38px 0;\n}\n.note .paper {\n  position: relative;\n  bottom: 24px;\n  right: -198px;\n  width: 23px;\n  height: 23px;\n  background-color: #BC7D1B;\n  border-radius: 0 0 19px;\n  transform: skew(-31deg) rotate(-4deg);\n}\n.draggable {\n  opacity: 0.8;\n  transition: none;\n}\n", ""]);
+exports.push([module.i, "body {\n  margin: 0;\n  padding: 0;\n  background: url('/imgs/bg.jpg');\n}\n#header {\n  display: flex;\n  justify-content: space-between;\n  height: 60px;\n  background: #585858;\n}\n#header a {\n  display: block;\n  height: 22px;\n  line-height: 22px;\n  text-decoration: none;\n  color: #0ddb0d;\n  margin: 19px 100px;\n  transition: all 0.3s;\n}\n#header a:hover {\n  color: #00ff00;\n}\n#header a span {\n  position: relative;\n  bottom: 2px;\n}\n#header .user-area {\n  list-style: none;\n  margin-right: 100px;\n  margin-top: 18px;\n}\n#header .user-area a {\n  margin: 0;\n}\n#content {\n  position: relative;\n}\n/*    markdown    */\nblockquote {\n  border-left: 5px solid #ccc;\n  background: #FFF;\n  margin: 1em;\n  padding: .1em 1em;\n}\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports) {
 
 
@@ -997,7 +774,280 @@ module.exports = function (css) {
 
 
 /***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function($) {var Note = __webpack_require__(10).Note
+var Event = __webpack_require__(3)
+
+
+var NoteManager = (function(){
+  
+  function load(){
+    $.get('/api/notes')
+      .done(function(ret){
+        if(ret.status === 0){
+          $.each(ret.data, function(idx, note){
+            new Note({
+              id: note.id,
+              context: note.text
+            })
+          })
+          Event.fire('waterfall')
+        }else{
+          Event.fire('toast', '初始化失败')
+          console.log(ret.errorMsg)
+        }
+      })
+      .fail(function(){
+        Event.fire('toast', '网络异常')
+      })
+  }
+
+  function add(){
+    new Note()
+  }
+
+  return {
+    load: load,
+    add: add
+  }
+
+})()
+
+module.exports = NoteManager
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(11)
+
+var Event = __webpack_require__(3)
+
+/*
+定义 note形式, id用来识别note
+{id: 1, context:'my note'}
+*/
+
+
+function Note(opts){
+  this.initOpts(opts)
+  this.createNote()
+  this.setStyle()
+  this.bindEvent()
+}
+
+Note.prototype = {
+
+  colors: [
+    ['#EA9B35','#EFB04E'], //顶部颜色, 内容颜色
+    ['#FF9999','#FFCCCC'],
+    ['#A76F00','#CC9966'],
+    ['#9999CC','#CCCCFF'],
+    ['#ADAD37','#CCCC99'],
+    ['#FF9900','#FFCC00'],
+    ['#0099CC','#99CCFF'],
+    ['#FF9900','#FFCC00'],
+    ['#339933','#33CC33'],
+    ['#CC6699','#CC99CC'],
+    ['#009999','#66CCCC']
+  ],
+  //默认参数
+  defaultOpts: {
+    id: '', //note默认id是空的
+    $ct: $('#content').length>0?$('#content'):$('body'), //有容器就放在容器里，否则放在body里
+    context: 'write here'  //Note 默认内容
+  },
+  //初始化默认参数
+  initOpts: function(opts){
+    this.opts = $.extend({}, this.defaultOpts, opts||{}) //将默认参数 和 可能传入的参数 合并成新对象，绑定到this.opts 上
+    if(this.opts.id){ //设置 Note id
+      this.id = this.opts.id
+    }
+  },
+  //创建Note
+  createNote: function(){
+    var tpl = '<div class="note">'
+              + '<div class="note-head"><span class="delete">&times;</span></div>'
+              + '<div class="note-ct" contenteditable="true"></div>'
+              + '<div class="paper"></div>'
+              +'</div>'
+    this.$note = $(tpl)
+    this.$note.find('.note-ct').html(this.opts.context) //向note写入预设文本
+    this.opts.$ct.append(this.$note) //将note添加到$ct中
+    if(!this.id) this.$note.css({ //如果this.id 是空的
+      left: 'calc(50% - 125px)',
+      top: '200px'
+    }) 
+  },
+  //设置样式
+  setStyle: function(){
+    var color = this.colors[Math.floor(Math.random()*11)]
+    this.$note.find('.note-head').css('background-color', color[0])
+    this.$note.find('.note-ct').css('background-color', color[1])
+    this.$note.find('.paper').css('background-color', color[0])
+
+    var num = 2 * Math.floor(Math.random()*5/2)
+    var coin = Math.floor(Math.random()*2)
+    if(!coin){
+      num = - num
+    }
+    this.$note.css('transform', 'rotate('+num+'deg)')
+  },
+  //设置布局
+  setLayout: function(){
+    if(this.clock){
+      clearTimeout(this.clock)
+    }
+    this.clock = setTimeout(function(){  //使用 setTimeout 是有原因的
+      Event.fire('waterfall')
+    }, 100)
+  },
+  //绑定事件
+  bindEvent: function(){
+    var self = this,
+        $note = this.$note,
+        $noteHead = $note.find('.note-head'),
+        $noteCt = $note.find('.note-ct'),
+        $delete = $note.find('.delete')
+
+    $delete.on('click', function(){ //点击 x 时 删除note
+      if(window.confirm('Do you really want to delete?')) self.delete()
+    })
+    //但是 contenteditable 没有 change 事件，所以要通过判断元素内容变动，模拟 change，实现 保存
+    $noteCt.on('focus', function(){
+      if( $noteCt.html() === 'write here' ) $noteCt.html('') //点击时清空默认字符
+      $noteCt.data('before', $noteCt.html()) //data()方法用于在匹配元素上存储数据
+    }).on('blur paste', function(){
+      if( $noteCt.data('before') !== $noteCt.html() ){ //如果失去焦点或者粘贴后，当前$noteCt的html内容和之前存储的数据不一样了
+        $noteCt.data('before', $noteCt.html()) //那么就更新存储的数据
+        self.setLayout() //重新布局放置
+        if(self.id){  //如果是之前已有的 note 
+          self.edit($noteCt.html()) //那就发送post请求，提交当前note内容
+        }else{ //否则 self.id 是空
+          self.add($noteCt.html()) //则新增
+        }
+      }
+    })
+    //设置 note 的拖动
+    $noteHead.on('mousedown', function(e){
+      var evtX = e.pageX - $note.offset().left, //计算触发点距离 noteHead 左边缘距离
+          evtY = e.pageY - $note.offset().top
+      $note.addClass('draggable').data('evtPos', {x:evtX, y:evtY}) //添加拖动状态class 并存储 触发点至 note 边缘距离
+    }).on('mouseup', function(){
+      $note.removeClass('draggable').removeData('evtPos') //松开鼠标后 移除存储的相对note的坐标
+    })
+    //鼠标移动时，如果有draggable， 说明是按住note移动的过程， 因此改变相应note据文档的偏移即可 
+    $('body').on('mousemove', function(e){
+      $('.draggable').length && $('.draggable').offset({
+        top: e.pageY - $('.draggable').data('evtPos').y,
+        left: e.pageX - $('.draggable').data('evtPos').x
+      })
+      $('.draggable').length && $('.note').css('user-select', 'none')
+    })
+  },
+  //用于修改
+  edit: function(msg){
+    var self = this
+    $,post('/api/notes/edit', {
+      id: this.id,
+      note: msg
+    }).done(function(ret){
+      if(ret.status === 0){
+        Event.fire('toast', '修改成功')
+        console.log('update success')
+      }else{
+        Event.fire('toast', '修改失败')
+        console.log(ret.errorMsg)
+      }
+    })
+  },
+  //用于新增
+  add: function(msg){
+    var self = this
+    $.post('/api/notes/add', {
+      note: msg
+    }).done(function(ret){
+      if(ret.status === 0){
+        self.id = ret.data.id  //当前self.id也修改为服务器分配的id，以便继续修改note或者delete发送请求时，携带正确的id
+        Event.fire('toast', '创建成功')
+      }else{
+        Event.fire('toast', '创建失败')
+        console.log(ret.errorMsg)
+      }
+    })
+  },
+  //用于删除
+  delete: function(){
+    var self = this
+    $.post('/api/notes/delete', {id: this.id})
+      .done(function(ret){
+        if(ret.status === 0){
+          Event.fire('toast', '删除成功')
+          self.$note.remove()
+          Event.fire('waterfall')
+        }else{
+          Event.fire('toast', '删除失败')
+          console.log(ret.errorMsg)
+        }
+      })
+  }
+
+}
+
+
+module.exports.Note = Note
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
 /* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(12);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(2)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./note.less", function() {
+			var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/less-loader/dist/cjs.js!./note.less");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 230px;\n  margin: 25px 15px;\n  transition: all 0.5s;\n}\n.note .note-head {\n  position: relative;\n  top: 10px;\n  height: 20px;\n  background-color: #EA9B35;\n  cursor: move;\n  border-radius: 0 0 30% 30%;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head::before {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(-50%);\n  content: '';\n  display: block;\n  width: 60px;\n  height: 20px;\n  background-color: #91e8a7;\n  box-shadow: -1px 0px 55px #0aff00;\n}\n.note .note-head::after {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(30px);\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #65ad65;\n  border-top: 18px solid transparent;\n}\n.note .note-head .delete {\n  position: absolute;\n  top: -7px;\n  right: 5px;\n  font-size: 22px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0;\n  transition: opacity 0.3s;\n}\n.note .note-ct {\n  padding: 20px 10px 25px 10px;\n  background-color: #EFB04E;\n  outline: none;\n  border-radius: 0 0 38px 0;\n}\n.note .paper {\n  position: relative;\n  bottom: 24px;\n  right: -198px;\n  width: 23px;\n  height: 23px;\n  background-color: #BC7D1B;\n  border-radius: 0 0 19px;\n  transform: skew(-31deg) rotate(-4deg);\n}\n.draggable {\n  opacity: 0.8;\n  transition: none;\n  cursor: move;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($) {
@@ -1047,10 +1097,10 @@ module.exports = WaterFall
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(13)
+/* WEBPACK VAR INJECTION */(function($) {__webpack_require__(15)
 
 function toast(msg, time){
   this.msg = msg
@@ -1086,13 +1136,13 @@ module.exports.Toast = Toast
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(14);
+var content = __webpack_require__(16);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -1117,7 +1167,7 @@ if(false) {
 }
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(undefined);
@@ -1131,10 +1181,10 @@ exports.push([module.i, ".toast {\n  position: fixed;\n  left: 50%;\n  transform
 
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(16)
+__webpack_require__(18)
 
 function _GoTop(){
   this.createNode()
@@ -1148,7 +1198,7 @@ _GoTop.prototype.bindEvent = function(){
     window.scrollTo(0, 0)         //当点击按钮时，横纵滚动条全部复位
   }
   window.onscroll = function(){
-    if(this.scrollY > 200){       //当滚动的时候，距离大于200px了，再显示gotop按钮
+    if(this.scrollY > 98){       //当滚动的时候，距离大于200px了，再显示gotop按钮
       self.target.style.display = 'block'
     }else{
       self.target.style.display = 'none'
@@ -1175,13 +1225,13 @@ module.exports.GoTop = GoTop
 
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(17);
+var content = __webpack_require__(19);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -1206,7 +1256,7 @@ if(false) {
 }
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(undefined);
@@ -1214,7 +1264,7 @@ exports = module.exports = __webpack_require__(1)(undefined);
 
 
 // module
-exports.push([module.i, ".goTop {\n  position: fixed;\n  right: 10px;\n  bottom: 70px;\n  width: 16px;\n  height: 78px;\n  padding: 10px;\n  text-align: center;\n  color: #fff;\n  font-size: 14px;\n  border-radius: 5px;\n  background: #975536;\n  cursor: pointer;\n  opacity: 0.8;\n  transition: all 0.3s;\n}\n.goTop:hover {\n  opacity: 1;\n}\n.goTop::before {\n  position: fixed;\n  bottom: 166px;\n  right: 11px;\n  content: '';\n  display: block;\n  border-bottom: 30px solid #975536;\n  border-right: 17px solid transparent;\n  border-left: 17px solid transparent;\n}\n", ""]);
+exports.push([module.i, ".goTop {\n  position: fixed;\n  right: 10px;\n  bottom: 70px;\n  width: 16px;\n  height: 78px;\n  padding: 10px;\n  text-align: center;\n  color: #00ff00;\n  font-size: 14px;\n  border-radius: 5px;\n  background: #585858;\n  cursor: pointer;\n  opacity: 0.8;\n  transition: all 0.3s;\n}\n.goTop:hover {\n  opacity: 1;\n  box-shadow: 0px 0px 50px #0aff00;\n}\n", ""]);
 
 // exports
 

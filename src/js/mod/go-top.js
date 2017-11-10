@@ -12,7 +12,7 @@ _GoTop.prototype.bindEvent = function(){
     window.scrollTo(0, 0)         //当点击按钮时，横纵滚动条全部复位
   }
   window.onscroll = function(){
-    if(this.scrollY > 200){       //当滚动的时候，距离大于200px了，再显示gotop按钮
+    if(this.scrollY > 98){       //当滚动的时候，距离大于200px了，再显示gotop按钮
       self.target.style.display = 'block'
     }else{
       self.target.style.display = 'none'
