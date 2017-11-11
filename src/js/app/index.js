@@ -28,6 +28,9 @@ Event.on('toast', function(args){
 
 GoTop()
 
+
+/*       Markdown     */
+
 //window 每次被点击的时候，先看页面上有无 note-ct 可编辑标签，有则传入 MarkdownIME 进行增强
 //https://laobubu.net/MarkdownIME/index.zh.html
 $(window).on('click', function(){

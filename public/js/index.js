@@ -615,6 +615,9 @@ Event.on('toast', function(args){
 
 GoTop()
 
+
+/*       Markdown     */
+
 //window 每次被点击的时候，先看页面上有无 note-ct 可编辑标签，有则传入 MarkdownIME 进行增强
 //https://laobubu.net/MarkdownIME/index.zh.html
 $(window).on('click', function(){
@@ -970,6 +973,7 @@ Note.prototype = {
     $.post('/api/notes/add', {
       note: msg
     }).done(function(ret){
+      console.log('为什么没有 ret.status', ret.status)
       if(ret.status === 0){
         self.id = ret.data.id  //当前self.id也修改为服务器分配的id，以便继续修改note或者delete发送请求时，携带正确的id
         Event.fire('toast', '创建成功')

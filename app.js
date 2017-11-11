@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
-var users = require('./routes/users');
+var api = require('./routes/api');
 
 var app = express();
 
@@ -23,16 +23,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.use('/stylesheets/style.html', function(req, res){
-  res.send('我是 style.css')
-  console.log('get style.css.....')
-})
-app.use('/xiaofeng', function(req, res, next){
-  res.send('you are right')
-})
+//设置路由
 //mount the router on the app 将路由挂载至 app
 app.use('/', index);
-app.use('/users', users);
+app.use('/api', api);
+//app.use('/users', users);
+
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
