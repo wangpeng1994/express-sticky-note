@@ -8,10 +8,15 @@ function _GoTop(){
 _GoTop.prototype.bindEvent = function(){
   var self = this
   this.target.style.display = 'none' //先隐藏
-  this.target.onclick = function(){
-    window.scrollTo(0, 0)         //当点击按钮时，横纵滚动条全部复位
+  this.target.onclick = function(){  
+    var count = window.scrollY
+    self.clock = setInterval(function(){
+      count -= 20 
+      window.scrollTo(0, count)
+    }, 5)
   }
   window.onscroll = function(){
+    this.scrollY === 0 && clearInterval(self.clock)
     if(this.scrollY > 98){       //当滚动的时候，距离大于200px了，再显示gotop按钮
       self.target.style.display = 'block'
     }else{

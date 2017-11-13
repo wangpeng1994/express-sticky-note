@@ -23,10 +23,13 @@ const Note = sequelize.define('note', {
   }
 })
 
-//Note.drop()  // 会先 创建，然后 drop
+// Note.drop()  // 会先 创建，然后 drop
 Note.sync()
+//Note.create({text: 'hello world'})
 
-
+// Note.findAll({raw: true}).then(function(notes){
+//   console.log(notes)
+// })
 /*
 //2. 检测数据库是否存在当前表结构，不存在则创建，存在则什么都不做
 Note.sync().then(function(){
@@ -54,6 +57,7 @@ Note.sync().then(function(){
 //   .then(function(notes){
 //   console.log(notes)
 // })
+// Note.update() 更新
 
 
 module.exports = Note;

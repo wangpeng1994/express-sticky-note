@@ -127,13 +127,12 @@ Note.prototype = {
   //用于修改
   edit: function(msg){
     var self = this
-    $,post('/api/notes/edit', {
+    $.post('/api/notes/edit', {
       id: this.id,
       note: msg
     }).done(function(ret){
       if(ret.status === 0){
         Event.fire('toast', '修改成功')
-        console.log('update success')
       }else{
         Event.fire('toast', '修改失败')
         console.log(ret.errorMsg)
@@ -146,7 +145,6 @@ Note.prototype = {
     $.post('/api/notes/add', {
       note: msg
     }).done(function(ret){
-      console.log('为什么没有 ret.status', ret.status)
       if(ret.status === 0){
         self.id = ret.data.id  //当前self.id也修改为服务器分配的id，以便继续修改note或者delete发送请求时，携带正确的id
         Event.fire('toast', '创建成功')

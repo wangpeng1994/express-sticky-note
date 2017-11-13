@@ -676,7 +676,7 @@ exports = module.exports = __webpack_require__(1)(undefined);
 
 
 // module
-exports.push([module.i, "body {\n  margin: 0;\n  padding: 0;\n  background: url('/imgs/bg.jpg');\n}\n#header {\n  display: flex;\n  justify-content: space-between;\n  height: 60px;\n  background: #585858;\n}\n#header a {\n  display: block;\n  height: 22px;\n  line-height: 22px;\n  text-decoration: none;\n  color: #0ddb0d;\n  margin: 19px 100px;\n  transition: all 0.3s;\n}\n#header a:hover {\n  color: #00ff00;\n}\n#header a span {\n  position: relative;\n  bottom: 2px;\n}\n#header .user-area {\n  list-style: none;\n  margin-right: 100px;\n  margin-top: 18px;\n}\n#header .user-area a {\n  margin: 0;\n}\n#content {\n  position: relative;\n}\n/*    markdown    */\nblockquote {\n  border-left: 5px solid #ccc;\n  background: #FFF;\n  margin: 1em;\n  padding: .1em 1em;\n}\n", ""]);
+exports.push([module.i, "body {\n  margin: 0;\n  padding: 0;\n  background: url('/imgs/bg.jpg');\n}\n#header {\n  display: flex;\n  justify-content: space-between;\n  height: 60px;\n  background: #585858;\n  user-select: none;\n}\n#header a {\n  display: block;\n  height: 22px;\n  line-height: 22px;\n  text-decoration: none;\n  color: #0ddb0d;\n  margin: 19px 100px;\n  transition: all 0.3s;\n}\n#header a:hover {\n  color: #00ff00;\n}\n#header a span {\n  position: relative;\n  bottom: 2px;\n}\n#header .user-area {\n  list-style: none;\n  margin-right: 100px;\n  margin-top: 18px;\n}\n#header .user-area a {\n  margin: 0;\n}\n#header .user-area li:nth-child(2) a {\n  width: 0;\n  height: 0;\n}\n#content {\n  position: relative;\n}\n/*    markdown    */\nblockquote {\n  border-left: 5px solid #ccc;\n  background: #FFF;\n  margin: 1em;\n  padding: .1em 1em;\n}\n", ""]);
 
 // exports
 
@@ -954,13 +954,12 @@ Note.prototype = {
   //用于修改
   edit: function(msg){
     var self = this
-    $,post('/api/notes/edit', {
+    $.post('/api/notes/edit', {
       id: this.id,
       note: msg
     }).done(function(ret){
       if(ret.status === 0){
         Event.fire('toast', '修改成功')
-        console.log('update success')
       }else{
         Event.fire('toast', '修改失败')
         console.log(ret.errorMsg)
@@ -973,7 +972,6 @@ Note.prototype = {
     $.post('/api/notes/add', {
       note: msg
     }).done(function(ret){
-      console.log('为什么没有 ret.status', ret.status)
       if(ret.status === 0){
         self.id = ret.data.id  //当前self.id也修改为服务器分配的id，以便继续修改note或者delete发送请求时，携带正确的id
         Event.fire('toast', '创建成功')
@@ -1198,10 +1196,15 @@ function _GoTop(){
 _GoTop.prototype.bindEvent = function(){
   var self = this
   this.target.style.display = 'none' //先隐藏
-  this.target.onclick = function(){
-    window.scrollTo(0, 0)         //当点击按钮时，横纵滚动条全部复位
+  this.target.onclick = function(){  
+    var count = window.scrollY
+    self.clock = setInterval(function(){
+      count -= 20 
+      window.scrollTo(0, count)
+    }, 5)
   }
   window.onscroll = function(){
+    this.scrollY === 0 && clearInterval(self.clock)
     if(this.scrollY > 98){       //当滚动的时候，距离大于200px了，再显示gotop按钮
       self.target.style.display = 'block'
     }else{
@@ -1268,7 +1271,7 @@ exports = module.exports = __webpack_require__(1)(undefined);
 
 
 // module
-exports.push([module.i, ".goTop {\n  position: fixed;\n  right: 10px;\n  bottom: 70px;\n  width: 16px;\n  height: 78px;\n  padding: 10px;\n  text-align: center;\n  color: #00ff00;\n  font-size: 14px;\n  border-radius: 5px;\n  background: #585858;\n  cursor: pointer;\n  opacity: 0.8;\n  transition: all 0.3s;\n}\n.goTop:hover {\n  opacity: 1;\n  box-shadow: 0px 0px 50px #0aff00;\n}\n", ""]);
+exports.push([module.i, ".goTop {\n  position: fixed;\n  right: 10px;\n  bottom: 70px;\n  width: 16px;\n  height: 78px;\n  padding: 10px;\n  text-align: center;\n  color: #00ff00;\n  font-size: 14px;\n  border-radius: 5px;\n  background: #585858;\n  cursor: pointer;\n  user-select: none;\n  opacity: 0.8;\n  transition: all 0.3s;\n}\n.goTop:hover {\n  opacity: 1;\n  box-shadow: 0px 0px 50px #0aff00;\n}\n", ""]);
 
 // exports
 

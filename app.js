@@ -4,9 +4,13 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
+//登录认证
+//var passport = require('passport');
+//var session = require('express-session');
+//路由
 var index = require('./routes/index');
 var api = require('./routes/api');
+var auth = require('./routes/auth');
 
 var app = express();
 
@@ -22,15 +26,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+//使用passport所需的中间件
+// app.use(session({secret: 'asdf35y56666436g'}));
+// app.use(passport.initialize());
+// app.use(passport.session())
 
-//设置路由
+//设置应用级路由
 //mount the router on the app 将路由挂载至 app
 app.use('/', index);
 app.use('/api', api);
+//app.use('/auth', auth);
 //app.use('/users', users);
-
-
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
