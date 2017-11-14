@@ -10,6 +10,7 @@ NoteManager.load()
 
 $('.add-note').on('click', function(){
   NoteManager.add()
+  Event.fire('waterfall')
 })
 
 Event.on('waterfall', function(){

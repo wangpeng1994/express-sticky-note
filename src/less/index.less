@@ -1,7 +1,7 @@
 body {
+  min-width: 530px;
   margin: 0;
   padding: 0;
-  background: url('/imgs/bg.jpg');
 }
 
 #header {
@@ -16,28 +16,33 @@ body {
     line-height: 22px;
     text-decoration: none;
     color: #0ddb0d;
-    margin: 19px 100px;
+    margin: 19px 40px;
     transition: all 0.3s;
     &:hover {
       color: #00ff00;
     }
-    span {
-      position: relative;
-      bottom: 2px;
-    }
   }
 
   .user-area {
+    display: flex;
     list-style: none;
-    margin-right: 100px;
+    margin-right: 40px;
     margin-top: 18px;
+    img {
+      position: relative;
+      top: -50%;
+      width: 30px;
+      margin: 10px 5px;
+      border-radius: 50%;
+    }
     a {
       margin: 0;
     }
-    li:nth-child(2) a {
-      width: 0;
-      height: 0;
+    .bound {
+      margin: 10px;
+      color: #0ddb0d;
     }
+
   }
 }
 
@@ -45,9 +50,17 @@ body {
   position: relative;
 }
 
+.bg {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: -999;
+  background: url('/imgs/bg.jpg');
+}
 
 /*    markdown    */
-
 blockquote {
   border-left: 5px solid #ccc;
   background: #FFF;

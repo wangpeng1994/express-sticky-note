@@ -54,8 +54,8 @@ Note.prototype = {
     this.$note.find('.note-ct').html(this.opts.context) //向note写入预设文本
     this.opts.$ct.append(this.$note) //将note添加到$ct中
     if(!this.id) this.$note.css({ //如果this.id 是空的
-      left: 'calc(50% - 125px)',
-      top: '200px'
+      left: '50px',
+      top: '50px'
     }) 
   },
   //设置样式

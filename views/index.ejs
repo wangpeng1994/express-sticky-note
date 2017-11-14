@@ -2,38 +2,36 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title><%= title %></title>
-    <link rel="shortcut icon" href="/imgs/favicon.ico">
+    <title>在线便利贴</title>
     <link rel="stylesheet" type="text/css" href="/css/iconfont.css">
   </head>
   <body>
     <div id="header">
-
-
       <a class="add-note" title="点击添加便签" href="javascript:void(0)">
         <i class="iconfont icon-pen"></i>
         <span>添加</span>
       </a>
-
       <ul class="user-area">
-        <li>
-          <a class="login" title="点击进行GitHub登录" href="/auth/github">
-            <i class="iconfont icon-github"></i>
-            <span>登录</span>
-          </a>
-        </li>
-        <li>
-          <a href="https://github.com/wangpeng1994/express-sticky-note">
-            <img style="position: absolute; top: 0; right: 0; width: 100px; border: 0" src="/imgs/forkme.png" alt="Fork me on GitHub">
-          </a>
-        </li>
+        <% if(isLogin){ %>
+          <li><img src="<%= user.avatar %>" alt=""></li>
+          <li><a href="<%= user.url %>" target="_blank"><span title="<%= user.username %>"><%= user.username %></span></a></li>
+          <li><span class="bound"> | </span></li>
+          <li><a class="logout" href="/auth/logout">注销</a></li>
+        <% }else{ %>
+          <li>
+            <a class="login" title="点击进行GitHub登录" href="/auth/github">
+              <i class="iconfont icon-github"></i>
+              <span>GitHub登录</span>
+            </a>
+          </li>
+        <% } %>
       </ul>
     </div>
     
-    <div id="content">
-      <!-- note -->
-    </div>
+    <div id="content"></div>
 
+    <div class="bg"></div>
+    
     </div class="stars"></div>
     
     <script src="/js/index.js"></script>
