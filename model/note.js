@@ -16,15 +16,22 @@ sequelize.authenticate()
   });
 */
 
-//1. 定义表结构   1 hello
+//1. 定义表结构   1    hello    create time     update time
 const Note = sequelize.define('note', {
   text: {
+    type: Sequelize.STRING
+  },  //增加uid 设置用户权识别
+  uid: {
+    type: Sequelize.STRING
+  },
+  username: {
     type: Sequelize.STRING
   }
 })
 
-// Note.drop()  // 会先 创建，然后 drop
 Note.sync()
+//Note.drop()  // 会先 创建，然后 drop
+//Note.sync({force: true})
 //Note.create({text: 'hello world'})
 
 // Note.findAll({raw: true}).then(function(notes){

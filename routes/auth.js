@@ -46,7 +46,7 @@ router.get('/github/callback', //第二个参数是认证失败后指定跳转�
     console.log(req.user)
     req.session.user = {
       id: req.user.id,
-      username: req.user.username,
+      username: req.user.displayName,
       avatar: req.user._json.avatar_url,
       provider: req.user.provider,
       url: req.user.profileUrl

@@ -794,7 +794,10 @@ var NoteManager = (function(){
           $.each(ret.data, function(idx, note){
             new Note({
               id: note.id,
-              context: note.text
+              context: note.text,
+              //增加签名和时间戳
+              username: note.username,
+              updatetime: note.updatedAt
             })
           })
           Event.fire('waterfall')
@@ -867,8 +870,8 @@ Note.prototype = {
   //初始化默认参数
   initOpts: function(opts){
     this.opts = $.extend({}, this.defaultOpts, opts||{}) //将默认参数 和 可能传入的参数 合并成新对象，绑定到this.opts 上
-    if(this.opts.id){ //设置 Note id
-      this.id = this.opts.id
+    if(this.opts.id){ //如果id非空，说明是new时传入的opts携带的
+      this.id = this.opts.id //设置 Note id
     }
   },
   //创建Note
@@ -877,9 +880,14 @@ Note.prototype = {
               + '<div class="note-head"><span class="delete">&times;</span></div>'
               + '<div class="note-ct" contenteditable="true"></div>'
               + '<div class="paper"></div>'
+              + '<div class="note-name"></div>'
+              + '<div class="note-time"></div>'
               +'</div>'
     this.$note = $(tpl)
     this.$note.find('.note-ct').html(this.opts.context) //向note写入预设文本
+    this.$note.find('.note-name').html(this.opts.username)  //增加签名和时间戳
+    //这里要判断 如果参数不存在，说明是新建，那此时再未 add 请求之前，不应该添加时间戳
+    this.opts.updatetime && this.$note.find('.note-time').html(this.timeCalc(this.opts.updatetime))
     this.opts.$ct.append(this.$note) //将note添加到$ct中
     if(!this.id) this.$note.css({ //如果this.id 是空的
       left: '50px',
@@ -918,7 +926,7 @@ Note.prototype = {
         $delete = $note.find('.delete')
 
     $delete.on('click', function(){ //点击 x 时 删除note
-      if(window.confirm('Do you really want to delete?')) self.delete()
+      if(window.confirm('Do you really want to delete this note?')) self.delete()
     })
     //但是 contenteditable 没有 change 事件，所以要通过判断元素内容变动，模拟 change，实现 保存
     $noteCt.on('focus', function(){
@@ -930,7 +938,7 @@ Note.prototype = {
         self.setLayout() //重新布局放置
         if(self.id){  //如果是之前已有的 note 
           self.edit($noteCt.html()) //那就发送post请求，提交当前note内容
-        }else{ //否则 self.id 是空
+        }else{ //如果 self.id 是空
           self.add($noteCt.html()) //则新增
         }
       }
@@ -962,8 +970,7 @@ Note.prototype = {
       if(ret.status === 0){
         Event.fire('toast', '修改成功')
       }else{
-        Event.fire('toast', '修改失败')
-        console.log(ret.errorMsg)
+        Event.fire('toast', ret.errorMsg)
       }
     })
   },
@@ -975,10 +982,12 @@ Note.prototype = {
     }).done(function(ret){
       if(ret.status === 0){
         self.id = ret.data.id  //当前self.id也修改为服务器分配的id，以便继续修改note或者delete发送请求时，携带正确的id
+        self.$note.find('.note-name').html(ret.data.username) //为了当场创建完即可显示签名，而不必等到刷新（请求/api/notes）后
+        self.$note.find('.note-time').html(self.timeCalc(ret.data.updatedAt))
         Event.fire('toast', '创建成功')
       }else{
-        Event.fire('toast', '创建失败')
-        console.log(ret.errorMsg)
+        Event.fire('toast', ret.errorMsg)
+        self.$note.remove()
       }
     })
   },
@@ -992,12 +1001,19 @@ Note.prototype = {
           self.$note.remove()
           Event.fire('waterfall')
         }else{
-          Event.fire('toast', '删除失败')
-          console.log(ret.errorMsg)
+          Event.fire('toast', ret.errorMsg)
         }
       })
+  },
+  //用于时间计算
+  timeCalc: function(str){
+    var s1 = str.substr(0, 10)
+    var s2 = str.substr(11, 8)
+    var joinStr = s1 + 'T' + s2
+    var timeUTC = Date.parse(joinStr)
+    var timeLOCAL = new Date(timeUTC + 1000*60*60*8)
+    return timeLOCAL.toLocaleDateString()
   }
-
 }
 
 
@@ -1044,7 +1060,7 @@ exports = module.exports = __webpack_require__(1)(undefined);
 
 
 // module
-exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 230px;\n  margin: 25px 15px;\n  transition: all 0.5s;\n}\n.note .note-head {\n  position: relative;\n  top: 10px;\n  height: 20px;\n  background-color: #EA9B35;\n  cursor: move;\n  border-radius: 0 0 30% 30%;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head::before {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(-50%);\n  content: '';\n  display: block;\n  width: 60px;\n  height: 20px;\n  background-color: #91e8a7;\n  box-shadow: -1px 0px 55px #0aff00;\n}\n.note .note-head::after {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(30px);\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #65ad65;\n  border-top: 18px solid transparent;\n}\n.note .note-head .delete {\n  position: absolute;\n  top: -7px;\n  right: 5px;\n  font-size: 22px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0;\n  transition: opacity 0.3s;\n}\n.note .note-ct {\n  padding: 20px 10px 25px 10px;\n  background-color: #EFB04E;\n  outline: none;\n  border-radius: 0 0 38px 0;\n}\n.note .paper {\n  position: relative;\n  bottom: 24px;\n  right: -198px;\n  width: 23px;\n  height: 23px;\n  background-color: #BC7D1B;\n  border-radius: 0 0 19px;\n  transform: skew(-31deg) rotate(-4deg);\n}\n.draggable {\n  opacity: 0.8;\n  transition: none;\n  cursor: move;\n}\n", ""]);
+exports.push([module.i, ".note {\n  position: absolute;\n  color: #333;\n  width: 230px;\n  margin: 25px 15px;\n  transition: all 0.5s;\n}\n.note .note-head {\n  position: relative;\n  top: 10px;\n  height: 20px;\n  background-color: #EA9B35;\n  cursor: move;\n  border-radius: 0 0 30% 30%;\n}\n.note .note-head:hover .delete {\n  opacity: 1;\n}\n.note .note-head::before {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(-50%);\n  content: '';\n  display: block;\n  width: 60px;\n  height: 20px;\n  background-color: #91e8a7;\n  box-shadow: -1px 0px 55px #0aff00;\n}\n.note .note-head::after {\n  position: absolute;\n  left: 50%;\n  top: -10px;\n  transform: translateX(30px);\n  z-index: -1;\n  content: '';\n  display: block;\n  width: 0;\n  height: 0;\n  border-left: 5px solid #65ad65;\n  border-top: 18px solid transparent;\n}\n.note .note-head .delete {\n  position: absolute;\n  top: -7px;\n  right: 5px;\n  font-size: 22px;\n  color: #fff;\n  cursor: pointer;\n  opacity: 0;\n  transition: opacity 0.3s;\n}\n.note .note-ct {\n  padding: 20px 10px 70px 10px;\n  background-color: #EFB04E;\n  outline: none;\n  border-radius: 0 0 38px 0;\n}\n.note .paper {\n  position: relative;\n  bottom: 24px;\n  right: -198px;\n  width: 23px;\n  height: 23px;\n  background-color: #BC7D1B;\n  border-radius: 0 0 19px;\n  transform: skew(-31deg) rotate(-4deg);\n}\n.note .note-name {\n  position: relative;\n  top: -85px;\n  font-size: 0.85em;\n  text-align: right;\n  margin-right: 10px;\n  color: #FFFFFF;\n}\n.note .note-time {\n  position: relative;\n  top: -85px;\n  font-size: 0.85em;\n  text-align: right;\n  margin-right: 10px;\n  color: #FFFFFF;\n}\n.draggable {\n  opacity: 0.8;\n  transition: none;\n  cursor: move;\n}\n", ""]);
 
 // exports
 

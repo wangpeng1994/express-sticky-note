@@ -11,7 +11,10 @@ var NoteManager = (function(){
           $.each(ret.data, function(idx, note){
             new Note({
               id: note.id,
-              context: note.text
+              context: note.text,
+              //增加签名和时间戳
+              username: note.username,
+              updatetime: note.updatedAt
             })
           })
           Event.fire('waterfall')
