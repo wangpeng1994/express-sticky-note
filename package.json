@@ -23,7 +23,7 @@
     "passport-github": "^1.1.0",
     "sequelize": "^3.30.2",
     "serve-favicon": "~2.4.5",
-    "sqlite3": "^3.1.8",
+    "sqlite3": "^3.1.13",
     "style-loader": "^0.19.0"
   },
   "devDependencies": {
